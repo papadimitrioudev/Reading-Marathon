@@ -1,0 +1,23 @@
+{
+  "name": "reading-marathon-bee",
+  "version": "1.0.0",
+  "description": "A real-time leaderboard for reading marathons with a bee theme and sound effects.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "reading",
+    "marathon",
+    "leaderboard",
+    "bee",
+    "real-time",
+    "socket.io"
+  ],
+  "author": "Langabee Team",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  }
+}

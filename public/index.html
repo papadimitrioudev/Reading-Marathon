@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reading Marathon – Langabee</title>
+  <style>
+    /* ---------- CSS VARIABLES ---------- */
+    :root {
+      --langabee-yellow: #FFD700;
+      --langabee-black:  #000000;
+      --dark-yellow:     #FFA500;
+      --light-yellow:    #FFF8DC;
+      --cinema-yellow:   #FFE000;
+    }
+
+    /* ---------- GLOBAL RESET ---------- */
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:'Comic Sans MS',cursive,sans-serif;
+      background:linear-gradient(135deg,var(--cinema-yellow) 0%,var(--light-yellow) 100%);
+      min-height:100vh;padding:20px;overflow-x:hidden;position:relative;
+    }
+
+    /* ---------- HONEYCOMB BACKGROUND ---------- */
+    .honeycomb{
+      position:absolute;inset:0;z-index:-1;
+      background-image:
+        radial-gradient(circle at 25px 25px,rgba(255,224,0,.15) 2px,transparent 2px),
+        radial-gradient(circle at 75px 75px,rgba(255,224,0,.15) 2px,transparent 2px);
+      background-size:50px 50px;
+      background-position:0 0,25px 25px;
+      animation:bgPan 20s linear infinite;
+    }
+    @keyframes bgPan{0%{background-position:0 0,25px 25px;}100%{background-position:50px 50px,75px 75px;}}
+
+    /* ---------- FLYING BEES ---------- */
+    .bee{
+      position:fixed;width:40px;height:40px;z-index:1000;pointer-events:none;
+      animation:fly 15s infinite linear;
+    }
+    .bee::before{content:'🐝';font-size:30px;animation:buzz .1s infinite;}
+    @keyframes fly{0%{transform:translateX(-100px) translateY(0);}25%{transform:translateX(calc(100vw + 100px)) translateY(-50px);}50%{transform:translateX(calc(100vw + 100px)) translateY(50px);}75%{transform:translateX(-100px) translateY(50px);}100%{transform:translateX(-100px) translateY(0);}}
+    @keyframes buzz{0%,100%{transform:rotate(-5deg);}50%{transform:rotate(5deg);}}
+
+    /* ---------- HONEY DROPS ---------- */
+    .honey-drop{
+      position:fixed;width:20px;height:20px;background:var(--cinema-yellow);border-radius:50%;opacity:.7;
+      animation:drop 4s infinite linear;
+    }
+    @keyframes drop{0%{transform:translateY(-100vh);opacity:0;}50%{opacity:1;}100%{transform:translateY(100vh);opacity:0;}}
+
+    /* ---------- TOP MODE BUTTONS ---------- */
+    .mode-buttons{
+      position:fixed;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:1000;
+      background:rgba(255,224,0,.95);padding:15px;border-radius:25px;border:4px solid var(--langabee-black);
+      box-shadow:0 5px 15px rgba(0,0,0,.4);
+    }
+    .mode-btn{
+      padding:15px 30px;background:var(--cinema-yellow);color:var(--langabee-black);border:4px solid var(--langabee-black);
+      border-radius:15px;font-size:18px;font-weight:bold;cursor:pointer;transition:.3s;position:relative;overflow:hidden;
+    }
+    .mode-btn::before{content:'🍯';position:absolute;left:10px;top:50%;transform:translateY(-50%);}
+    .mode-btn.active{background:var(--langabee-black);color:var(--cinema-yellow);}
+    .mode-btn:hover{transform:translateY(-2px);box-shadow:0 5px 10px rgba(0,0,0,.2);}
+
+    /* ---------- MOBILE FIRST RESPONSIVE ---------- */
+    @media(max-width:768px){
+      .mode-buttons,.projector-actions button,.reset-btn,.fullscreen-btn,.exit-fullscreen-btn{display:none!important;}
+      .logo{max-height:70px!important;}
+      .mobile-container{width:90vw;max-width:400px;margin:10vh auto;padding:20px;min-height:70vh;}
+      input{padding:3vh 2vw;font-size:4.5vw;border:2px solid var(--langabee-black);border-radius:10px;margin:1.5vh 0;}
+      .add-score-btn{width:100%;font-size:5.5vw;padding:3vh 2vw;min-height:60px;}
+      .status-bar{padding:2vh 2vw;font-size:3.5vw;margin-top:2vh;}
+    }
+
+    /* ---------- INPUT CARD ---------- */
+    .mobile-container{
+      max-width:500px;margin:100px auto 20px;background:var(--light-yellow);border:5px solid var(--langabee-black);
+      border-radius:30px;padding:30px;box-shadow:0 10px 30px rgba(0,0,0,.3);position:relative;overflow:hidden;
+    }
+    .logo-container{text-align:center;margin-bottom:20px;}
+    .logo{
+      max-width:90%;height:auto;max-height:120px;object-fit:contain;
+      filter:drop-shadow(0 5px 10px rgba(0,0,0,.3));animation:float 3s ease-in-out infinite;
+    }
+    @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+    h1{color:var(--langabee-black);text-align:center;margin-bottom:25px;font-size:28px;text-shadow:2px 2px 4px rgba(0,0,0,.1);}
+    input{width:100%;padding:15px;margin:10px 0;border:3px solid var(--langabee-black);border-radius:15px;font-size:18px;background:white;box-shadow:inset 0 2px 5px rgba(0,0,0,.1);}
+    input:focus{outline:none;border-color:var(--cinema-yellow);box-shadow:0 0 10px var(--cinema-yellow);}
+    .add-score-btn{
+      width:100%;padding:20px;background:linear-gradient(45deg,var(--cinema-yellow),var(--dark-yellow));
+      color:var(--langabee-black);border:3px solid var(--langabee-black);border-radius:20px;font-size:22px;font-weight:bold;
+      cursor:pointer;position:relative;overflow:hidden;transition:.3s;
+    }
+    .add-score-btn::before{content:'🐝';position:absolute;left:20px;top:50%;transform:translateY(-50%) rotate(0);animation:fly-around 2s infinite linear;}
+    @keyframes fly-around{to{transform:translateY(-50%) rotate(360deg);}}
+    .add-score-btn:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,.2);}
+    .status-bar{text-align:center;margin-top:15px;padding:10px;font-weight:bold;border-radius:10px;background:var(--cinema-yellow);color:var(--langabee-black);border:2px solid var(--langabee-black);}
+
+    /* ---------- UPDATE MODE – SLOT PICKER ---------- */
+    .update-toggle{text-align:center;margin-bottom:15px;font-size:18px;font-weight:bold;color:var(--langabee-black);}
+    .update-toggle input{width:auto;margin-right:10px;transform:scale(1.2);}
+    .slot-picker{margin:10px 0;text-align:center;font-weight:bold;display:none;}
+    .slot-btn{width:44px;height:44px;margin:0 5px;font-size:22px;border:3px solid var(--langabee-black);border-radius:50%;background:var(--cinema-yellow);color:var(--langabee-black);cursor:pointer;transition:.2s;}
+    .slot-btn:hover,.slot-btn.selected{transform:scale(1.1);background:var(--langabee-black);color:var(--cinema-yellow);}
+
+    /* ---------- PROJECTOR FULLSCREEN ---------- */
+    .projector-mode{
+      position:fixed;inset:0;background:linear-gradient(45deg,var(--cinema-yellow),white);display:none;z-index:500;
+      overflow-y:auto;border:10px solid var(--langabee-black);
+    }
+    .projector-mode.active{display:block;}
+    .projector-content{padding:40px;min-height:100vh;position:relative;}
+    .projector-header{text-align:center;margin-bottom:30px;border-bottom:10px solid var(--langabee-black);padding-bottom:20px;position:relative;}
+    .projector-header::before{content:'🍯🐝🍯';position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:40px;animation:honey-drip 3s infinite ease-in-out;}
+    @keyframes honey-drip{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(10px);}}
+    .projector-header h1{font-size:80px;color:var(--langabee-black);margin-top:20px;text-shadow:3px 3px 6px rgba(0,0,0,.3);}
+    .projector-leaderboard{list-style:none;padding:0 50px;display:flex;flex-direction:column;gap:20px;}
+    .projector-leaderboard li{
+      display:flex;align-items:center;justify-content:space-between;padding:20px;margin:0;background:white;
+      border:6px solid var(--langabee-black);border-radius:25px;box-shadow:0 10px 30px rgba(0,0,0,.3);
+      min-height:120px;position:relative;overflow:hidden;transition:.3s;
+    }
+    /* bee emoji hover animation */
+    .projector-leaderboard li::after{content:'🐝';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:40px;opacity:.3;transition:.3s;}
+    .projector-leaderboard li:hover::after{animation:bee-float 2s infinite ease-in-out;}
+    @keyframes bee-float{0%,100%{transform:translateY(-50%) translateX(0);}50%{transform:translateY(-50%) translateX(-20px);}}
+    .projector-rank{font-size:48px;font-weight:900;color:var(--langabee-black);width:120px;text-shadow:2px 2px 4px rgba(0,0,0,.3);}
+    .projector-name{flex:1;font-size:36px;font-weight:700;color:var(--langabee-black);margin-left:20px;text-shadow:1px 1px 2px rgba(0,0,0,.1);}
+    .projector-score{
+      font-size:32px;font-weight:900;color:var(--cinema-yellow);background:var(--langabee-black);
+      padding:15px 25px;border-radius:15px;border:3px solid var(--cinema-yellow);
+      box-shadow:0 5px 15px rgba(0,0,0,.3);text-shadow:2px 2px 4px rgba(0,0,0,.5);margin-left:10px;transition:.3s;
+    }
+    /* score-line glow on update */
+    .projector-score.new{animation:scoreGlow .6s ease-out;}
+    @keyframes scoreGlow{0%{box-shadow:0 0 0 var(--cinema-yellow);}50%{box-shadow:0 0 20px 8px var(--cinema-yellow);}100%{box-shadow:0 5px 15px rgba(0,0,0,.3);}}
+    .projector-actions{position:absolute;top:30px;right:30px;display:flex;gap:15px;z-index:1001;}
+    .projector-actions button{padding:15px 30px;font-size:18px;border:4px solid var(--langabee-black);border-radius:15px;cursor:pointer;font-weight:bold;position:relative;overflow:hidden;}
+    .projector-actions button::before{content:'🐝';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:25px;}
+    .reset-btn{background:linear-gradient(45deg,#ff4444,#cc0000);color:white;}
+    .fullscreen-btn{background:linear-gradient(45deg,var(--langabee-black),#333);color:var(--cinema-yellow);}
+    .exit-fullscreen-btn{background:linear-gradient(45deg,var(--dark-yellow),var(--cinema-yellow));color:var(--langabee-black);display:none;}
+    .projector-actions button:hover{transform:scale(1.05);box-shadow:0 5px 15px rgba(0,0,0,.3);}
+    .honey-drop{position:fixed;width:20px;height:20px;background:var(--cinema-yellow);border-radius:50%;opacity:.7;animation:drop 4s infinite linear;}
+    @keyframes drop{0%{transform:translateY(-100vh);opacity:0;}50%{opacity:1;}100%{transform:translateY(100vh);opacity:0;}}
+    .pin-overlay{position:fixed;inset:0;background:var(--cinema-yellow);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .pin-overlay input{width:200px;padding:15px;font-size:24px;text-align:center;border:3px solid var(--langabee-black);border-radius:15px;}
+    .pin-overlay button{margin-top:15px;padding:15px 30px;font-size:20px;background:var(--langabee-black);color:var(--cinema-yellow);border:none;border-radius:15px;cursor:pointer;}
+    @media(min-width:1200px){.projector-header h1{font-size:100px;}.projector-rank{font-size:64px;width:150px;}.projector-name{font-size:48px;}.projector-score{font-size:40px;padding:20px 35px;}.logo{max-height:180px;}.projector-leaderboard li{min-height:140px;}}
+  </style>
+</head>
+<body>
+  <!-- ---------- PIN OVERLAY ---------- -->
+  <div class="pin-overlay" id="pinOverlay">
+    <h2>Enter access code:</h2>
+    <input type="password" id="pinInput" maxlength="4">
+    <button onclick="checkPin()">Enter</button>
+  </div>
+
+  <!-- ---------- DECORATIVE ELEMENTS ---------- -->
+  <div class="honeycomb"></div>
+  <div class="bee" style="top:10%;animation-delay:0s"></div>
+  <div class="bee" style="top:30%;animation-delay:3s"></div>
+  <div class="bee" style="top:50%;animation-delay:6s"></div>
+  <div class="bee" style="top:70%;animation-delay:9s"></div>
+  <div class="bee" style="top:90%;animation-delay:12s"></div>
+  <div class="honey-drop" style="left:10%;animation-delay:0s"></div>
+  <div class="honey-drop" style="left:30%;animation-delay:2s"></div>
+  <div class="honey-drop" style="left:50%;animation-delay:4s"></div>
+  <div class="honey-drop" style="left:70%;animation-delay:6s"></div>
+  <div class="honey-drop" style="left:90%;animation-delay:8s"></div>
+
+  <!-- ---------- MODE SWITCHER ---------- -->
+  <div class="mode-buttons" id="modeButtons">
+    <button class="mode-btn active" onclick="showInputMode()">📱 Input</button>
+    <button class="mode-btn" onclick="showProjectorMode()">🎬 Leaderboard</button>
+  </div>
+
+  <!-- ---------- INPUT SECTION ---------- -->
+  <div class="mobile-container" id="mobileContainer">
+    <div class="logo-container">
+      <img src="/logo.png" alt="Langabee Logo" class="logo">
+      <div id="logoFallback" style="display:none;font-size:28px;font-weight:bold;color:var(--langabee-black)">🐝 LANGABEE 🐝</div>
+    </div>
+    <h1>📚 Reading Marathon</h1>
+    <div class="input-section">
+      <div class="update-toggle">
+        <label>
+          <input type="checkbox" id="updateMode"> 🔧 UPDATE Mode (override)
+        </label>
+      </div>
+      <div id="slotPicker" class="slot-picker">
+        <label>Slot to override:</label>
+        <button type="button" class="slot-btn selected" data-slot="0">①</button>
+        <button type="button" class="slot-btn" data-slot="1">②</button>
+        <button type="button" class="slot-btn" data-slot="2">③</button>
+      </div>
+      <input type="text" id="childId" placeholder="Child ID (e.g. 123)" maxlength="10">
+      <input type="number" id="km" placeholder="Kilometres (e.g. 3.5)" step="0.1" min="0" max="50">
+      <button class="add-score-btn" onclick="addScore()">ADD SCORE</button>
+    </div>
+    <div class="status-bar" id="status">✅ Connected!</div>
+  </div>
+
+  <!-- ---------- PROJECTOR FULLSCREEN ---------- -->
+  <div class="projector-mode" id="projectorMode">
+    <div class="projector-content">
+      <div class="projector-actions">
+        <button class="reset-btn" onclick="resetScores()">🗑️ Reset All</button>
+        <button class="fullscreen-btn" id="fullscreenBtn" onclick="enterFullscreen()">🔳 Fullscreen</button>
+        <button class="exit-fullscreen-btn" id="exitFullscreenBtn" onclick="exitFullscreen()">🔲 Exit</button>
+      </div>
+      <div class="projector-header">
+        <img src="/logo.png" alt="Langabee Logo" class="logo">
+        <h1>Reading Marathon - Live Scores</h1>
+      </div>
+      <ul class="projector-leaderboard" id="projectorLeaderboard"></ul>
+    </div>
+  </div>
+
+  <!-- ---------- SOCKET.IO & APP LOGIC ---------- -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    /* ========== GLOBALS ========== */
+    const socket = io();
+    let currentView = 'input';
+    let isCleanFullscreen = false;
+    let autoScrollInterval = null;
+    let scrollDirection = 1;
+    let audioUnlocked = false;
+    let scores = {};
+    let selectedSlot = 0; // default slot ①
+
+    /* ========== PIN OVERLAY ========== */
+    function checkPin() {
+      const pin = document.getElementById('pinInput').value.trim();
+      if (pin === '2727') {
+        document.getElementById('pinOverlay').style.display = 'none';
+        playSuccessSound();
+      } else {
+        alert('Wrong code!');
+        playErrorSound();
+      }
+    }
+
+    /* ========== AUDIO FX ========== */
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      try { new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+      audioUnlocked = true;
+    }
+    function playSuccessSound()   { beep(800, 1200, .3, 'sine'); }
+    function playErrorSound()     { beep(300, 200, .3, 'sawtooth'); }
+    function playNewScoreSound()  {
+      for (let i = 0; i < 3; i++) beep(500 + i * 200, 800 + i * 100, .15, ['sine','triangle','sawtooth'][i], i * 50);
+    }
+    function beep(start, end, dur, type = 'sine', delay = 0) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(start, ctx.currentTime + delay/1000);
+        if (end) osc.frequency.exponentialRampToValueAtTime(end, ctx.currentTime + delay/1000 + dur);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + delay/1000);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay/1000 + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + delay/1000); osc.stop(ctx.currentTime + delay/1000 + dur);
+      } catch {}
+    }
+
+    /* ========== SOCKET EVENTS ========== */
+    socket.on('scores', data => {
+      scores = data;
+      updateBothViews(scores);
+      playNewScoreSound();
+    });
+    socket.on('connect', () => {
+      document.getElementById('status').textContent = '✅ Connected!';
+      playSuccessSound();
+    });
+    socket.on('error', e => {
+      document.getElementById('status').textContent = '❌ Error: ' + e;
+      playErrorSound();
+    });
+
+    /* ========== SLOT PICKER LOGIC ========== */
+    const updateCb   = document.getElementById('updateMode');
+    const slotPicker = document.getElementById('slotPicker');
+    updateCb.addEventListener('change', () => {
+      slotPicker.style.display = updateCb.checked ? 'block' : 'none';
+    });
+    document.querySelectorAll('.slot-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedSlot = Number(btn.dataset.slot);
+      });
+    });
+
+    /* ========== FULLSCREEN HANDLING ========== */
+    function enterFullscreen() {
+      isCleanFullscreen = true;
+      // hide mode buttons during clean fullscreen
+      document.getElementById('modeButtons').style.display = 'none';
+
+      document.body.classList.add('clean-fullscreen');
+      document.getElementById('fullscreenBtn').style.display = 'none';
+      document.getElementById('exitFullscreenBtn').style.display = 'block';
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+      startAutoScroll();
+    }
+    function exitFullscreen() {
+      isCleanFullscreen = false;
+      // restore mode buttons
+      document.getElementById('modeButtons').style.display = 'flex';
+
+      document.body.classList.remove('clean-fullscreen');
+      document.getElementById('fullscreenBtn').style.display = 'block';
+      document.getElementById('exitFullscreenBtn').style.display = 'none';
+      if (document.fullscreenElement) document.exitFullscreen();
+      stopAutoScroll();
+    }
+    function startAutoScroll() {
+      const pm = document.getElementById('projectorMode');
+      pm.classList.add('auto-scroll');
+      autoScrollInterval = setInterval(() => {
+        const max = pm.scrollHeight - pm.clientHeight;
+        pm.scrollTop += scrollDirection;
+        if (scrollDirection === 1  && pm.scrollTop >= max) scrollDirection = -1;
+        else if (scrollDirection === -1 && pm.scrollTop <= 0) scrollDirection = 1;
+      }, 30);
+    }
+    function stopAutoScroll() {
+      clearInterval(autoScrollInterval); autoScrollInterval = null;
+      document.getElementById('projectorMode').classList.remove('auto-scroll');
+      document.getElementById('projectorMode').scrollTop = 0; scrollDirection = 1;
+    }
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && isCleanFullscreen) exitFullscreen();
+    });
+
+    /* ========== MODE SWITCHING ========== */
+    function showInputMode() {
+      currentView = 'input';
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.mode-btn[onclick="showInputMode()"]').classList.add('active');
+      document.getElementById('mobileContainer').style.display = 'block';
+      document.getElementById('projectorMode').classList.remove('active');
+      if (isCleanFullscreen) exitFullscreen();
+    }
+    function showProjectorMode() {
+      currentView = 'projector';
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.mode-btn[onclick="showProjectorMode()"]').classList.add('active');
+      document.getElementById('mobileContainer').style.display = 'none';
+      document.getElementById('projectorMode').classList.add('active');
+      enterFullscreen(); // auto-fullscreen on leaderboard click
+    }
+
+    /* ========== ADD / RESET SCORE ========== */
+    function addScore() {
+      unlockAudio();
+      const id  = document.getElementById('childId').value.trim();
+      const km  = parseFloat(document.getElementById('km').value);
+      const updateMode = document.getElementById('updateMode').checked;
+
+      if (!id || Number.isNaN(km) || km <= 0) {
+        alert('Please fill in all fields!');
+        playErrorSound();
+        return;
+      }
+
+      if (updateMode) {
+        socket.emit('addScoreOverride', { id, km, slot: selectedSlot });
+        document.getElementById('status').textContent = `✅ Updated: ID ${id} slot ${selectedSlot+1} → ${km} km`;
+      } else {
+        socket.emit('addScore', { id, km });
+        const current = scores[id]?.total || 0;
+        document.getElementById('status').textContent = `✅ Added: ID ${id} +${km} km → Total: ${current + km} km`;
+      }
+
+      document.getElementById('childId').value = '';
+      document.getElementById('km').value   = '';
+      playSuccessSound();
+      setTimeout(() => document.getElementById('status').textContent = '✅ Connected!', 2500);
+    }
+    function resetScores() {
+      if (confirm('⚠️ Erase ALL scores?')) { socket.emit('reset'); playSuccessSound(); }
+      else playErrorSound();
+    }
+
+    /* ========== RENDER LEADERBOARD ========== */
+    function updateBothViews(scores) {
+      const list = document.getElementById('projectorLeaderboard');
+      if (!list) return;
+      const sorted = Object.entries(scores).sort((a, b) => b[1].total - a[1].total);
+      list.innerHTML = sorted.map(([id, data], i) => {
+        const [s1, s2, s3] = data.slots;
+        return `
+          <li>
+            <span class="projector-rank">#${i + 1}</span>
+            <span class="projector-name">ID: ${id}</span>
+            <span class="projector-score">${s1 ?? '–'} km</span>
+            <span class="projector-score">${s2 ?? '–'} km</span>
+            <span class="projector-score">${s3 ?? '–'} km</span>
+            <span class="projector-score new">Total: ${data.total} km</span>
+          </li>`;
+      }).join('');
+      setTimeout(() => document.querySelectorAll('.new').forEach(el => el.classList.remove('new')), 1000);
+    }
+
+    /* ========== INITIAL ENTRY ========== */
+    document.addEventListener('DOMContentLoaded', () => {
+      showInputMode();
+      document.addEventListener('click', function initAudio() {
+        playSuccessSound(); document.removeEventListener('click', initAudio);
+      }, { once: true });
+    });
+  </script>
+</body>
+</html>
