@@ -122,7 +122,6 @@
       border:6px solid var(--langabee-black);border-radius:25px;box-shadow:0 10px 30px rgba(0,0,0,.3);
       min-height:120px;position:relative;overflow:hidden;transition:.3s;
     }
-    /* bee emoji hover animation */
     .projector-leaderboard li::after{content:'🐝';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:40px;opacity:.3;transition:.3s;}
     .projector-leaderboard li:hover::after{animation:bee-float 2s infinite ease-in-out;}
     @keyframes bee-float{0%,100%{transform:translateY(-50%) translateX(0);}50%{transform:translateY(-50%) translateX(-20px);}}
@@ -133,7 +132,6 @@
       padding:15px 25px;border-radius:15px;border:3px solid var(--cinema-yellow);
       box-shadow:0 5px 15px rgba(0,0,0,.3);text-shadow:2px 2px 4px rgba(0,0,0,.5);margin-left:10px;transition:.3s;
     }
-    /* score-line glow on update */
     .projector-score.new{animation:scoreGlow .6s ease-out;}
     @keyframes scoreGlow{0%{box-shadow:0 0 0 var(--cinema-yellow);}50%{box-shadow:0 0 20px 8px var(--cinema-yellow);}100%{box-shadow:0 5px 15px rgba(0,0,0,.3);}}
     .projector-actions{position:absolute;top:30px;right:30px;display:flex;gap:15px;z-index:1001;}
@@ -143,8 +141,19 @@
     .fullscreen-btn{background:linear-gradient(45deg,var(--langabee-black),#333);color:var(--cinema-yellow);}
     .exit-fullscreen-btn{background:linear-gradient(45deg,var(--dark-yellow),var(--cinema-yellow));color:var(--langabee-black);display:none;}
     .projector-actions button:hover{transform:scale(1.05);box-shadow:0 5px 15px rgba(0,0,0,.3);}
-    .honey-drop{position:fixed;width:20px;height:20px;background:var(--cinema-yellow);border-radius:50%;opacity:.7;animation:drop 4s infinite linear;}
-    @keyframes drop{0%{transform:translateY(-100vh);opacity:0;}50%{opacity:1;}100%{transform:translateY(100vh);opacity:0;}}
+
+    /* 🔧 ΚΑΘΑΡΟ FULLSCREEN MODE */
+    .clean-fullscreen .mode-buttons,
+    .clean-fullscreen .mobile-container {
+      display: none !important;
+    }
+
+    .projector-mode.auto-scroll {
+      overflow-y: scroll;
+      pointer-events: none;
+      scroll-behavior: smooth;
+    }
+
     .pin-overlay{position:fixed;inset:0;background:var(--cinema-yellow);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;}
     .pin-overlay input{width:200px;padding:15px;font-size:24px;text-align:center;border:3px solid var(--langabee-black);border-radius:15px;}
     .pin-overlay button{margin-top:15px;padding:15px 30px;font-size:20px;background:var(--langabee-black);color:var(--cinema-yellow);border:none;border-radius:15px;cursor:pointer;}
@@ -231,7 +240,7 @@
     let scrollDirection = 1;
     let audioUnlocked = false;
     let scores = {};
-    let selectedSlot = 0; // default slot ①
+    let selectedSlot = 0;
 
     /* ========== PIN OVERLAY ========== */
     function checkPin() {
@@ -301,20 +310,19 @@
     /* ========== FULLSCREEN HANDLING ========== */
     function enterFullscreen() {
       isCleanFullscreen = true;
-      // hide mode buttons during clean fullscreen
       document.getElementById('modeButtons').style.display = 'none';
-
       document.body.classList.add('clean-fullscreen');
       document.getElementById('fullscreenBtn').style.display = 'none';
       document.getElementById('exitFullscreenBtn').style.display = 'block';
       if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-      startAutoScroll();
+      setTimeout(() => {
+        stopAutoScroll();
+        startAutoScroll();
+      }, 800);
     }
     function exitFullscreen() {
       isCleanFullscreen = false;
-      // restore mode buttons
       document.getElementById('modeButtons').style.display = 'flex';
-
       document.body.classList.remove('clean-fullscreen');
       document.getElementById('fullscreenBtn').style.display = 'block';
       document.getElementById('exitFullscreenBtn').style.display = 'none';
@@ -324,17 +332,18 @@
     function startAutoScroll() {
       const pm = document.getElementById('projectorMode');
       pm.classList.add('auto-scroll');
+      stopAutoScroll();
       autoScrollInterval = setInterval(() => {
         const max = pm.scrollHeight - pm.clientHeight;
+        if (max <= 0) return;
         pm.scrollTop += scrollDirection;
-        if (scrollDirection === 1  && pm.scrollTop >= max) scrollDirection = -1;
+        if (scrollDirection === 1 && pm.scrollTop >= max - 1) scrollDirection = -1;
         else if (scrollDirection === -1 && pm.scrollTop <= 0) scrollDirection = 1;
-      }, 30);
+      }, 40);
     }
     function stopAutoScroll() {
-      clearInterval(autoScrollInterval); autoScrollInterval = null;
-      document.getElementById('projectorMode').classList.remove('auto-scroll');
-      document.getElementById('projectorMode').scrollTop = 0; scrollDirection = 1;
+      clearInterval(autoScrollInterval);
+      autoScrollInterval = null;
     }
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement && isCleanFullscreen) exitFullscreen();
@@ -355,7 +364,7 @@
       document.querySelector('.mode-btn[onclick="showProjectorMode()"]').classList.add('active');
       document.getElementById('mobileContainer').style.display = 'none';
       document.getElementById('projectorMode').classList.add('active');
-      enterFullscreen(); // auto-fullscreen on leaderboard click
+      enterFullscreen();
     }
 
     /* ========== ADD / RESET SCORE ========== */
